@@ -1,6 +1,6 @@
 {
 	"name": "pi-model-profiles",
-	"version": "0.1.0",
+	"version": "1.0.0",
 	"description": "Named model + thinking-effort profiles for pi, with favorites cycling",
 	"keywords": ["pi-package"],
 	"license": "MIT",
