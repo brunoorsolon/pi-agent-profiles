@@ -1,5 +1,5 @@
 {
-	"name": "pi-model-profiles",
+	"name": "pi-agent-profiles",
 	"version": "1.0.0",
 	"description": "Named model + thinking-effort profiles for pi, with favorites cycling",
 	"keywords": ["pi-package"],
