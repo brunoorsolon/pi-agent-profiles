@@ -6,7 +6,7 @@ Named model + thinking-effort profiles for [pi](https://github.com/earendil-work
 
 1. **Profiles**: named combinations of provider, model, and thinking level, any of which can be marked as favorites.
 2. **`/profile`**: pick a profile from a list (favorites marked with ★) or apply one directly with `/profile <name>` — the session switches model and effort instantly.
-3. **`alt+p`**: cycle through profiles marked as favorites.
+3. **Favorites cycling**: a shortcut (`alt+p` by default) cycles through profiles marked as favorites.
 
 ## Install
 
@@ -47,6 +47,17 @@ Copy `model-profiles.example.json` to `~/.pi/agent/model-profiles.json` (global)
 | `provider` | yes | e.g. `anthropic`, `openai` |
 | `model` | yes | Model ID, e.g. `claude-sonnet-4-5` |
 | `thinkingLevel` | no | `off`/`minimal`/`low`/`medium`/`high`/`xhigh`/`max`; omitted = leave unchanged |
-| `favorite` | no | `true` includes it in `alt+p` cycling |
+| `favorite` | no | `true` includes it in shortcut cycling |
+
+### Shortcut
+
+The cycle shortcut defaults to `alt+p`. Change it with a reserved `$settings` key in the same file (key format: `modifier+key`, e.g. `ctrl+shift+u`), then run `/reload`:
+
+```json
+{
+	"$settings": { "cycleShortcut": "ctrl+shift+u" },
+	"deep": { ... }
+}
+```
 
 Thinking level is clamped to what the model supports (non-reasoning models use `off`).

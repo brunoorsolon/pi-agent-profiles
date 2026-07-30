@@ -28,13 +28,23 @@
  * Usage:
  * - `/profile` - pick a profile from a list (favorites marked with ★)
  * - `/profile deep` - apply a profile by name
- * - `alt+p` - cycle through favorite profiles
+ * - `alt+p` - cycle through favorite profiles (configurable, see below)
+ *
+ * The cycle shortcut can be changed via a reserved `$settings` key:
+ * ```json
+ * {
+ *   "$settings": { "cycleShortcut": "ctrl+shift+u" },
+ *   "deep": { ... }
+ * }
+ * ```
+ * Key format: modifier+key, e.g. "alt+p", "ctrl+shift+u". Run `/reload` after editing.
  */
 
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { ExtensionAPI, ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { CONFIG_DIR_NAME, getAgentDir } from "@earendil-works/pi-coding-agent";
+import type { KeyId } from "@earendil-works/pi-tui";
 
 type ThinkingLevel = "off" | "minimal" | "low" | "medium" | "high" | "xhigh" | "max";
 
@@ -51,19 +61,29 @@ interface Profile {
 
 type ProfilesConfig = Record<string, Profile>;
 
-function loadProfiles(cwd: string): ProfilesConfig {
+const DEFAULT_SHORTCUT = "alt+p";
+
+interface LoadedConfig {
+	profiles: ProfilesConfig;
+	shortcut: string;
+}
+
+function loadProfiles(cwd: string): LoadedConfig {
 	const paths = [join(getAgentDir(), "model-profiles.json"), join(cwd, CONFIG_DIR_NAME, "model-profiles.json")];
 
-	let merged: ProfilesConfig = {};
+	let profiles: ProfilesConfig = {};
+	let shortcut = DEFAULT_SHORTCUT;
 	for (const path of paths) {
 		if (!existsSync(path)) continue;
 		try {
-			merged = { ...merged, ...JSON.parse(readFileSync(path, "utf-8")) };
+			const { $settings, ...rest } = JSON.parse(readFileSync(path, "utf-8"));
+			profiles = { ...profiles, ...rest };
+			if (typeof $settings?.cycleShortcut === "string") shortcut = $settings.cycleShortcut;
 		} catch (err) {
 			console.error(`Failed to load profiles from ${path}: ${err}`);
 		}
 	}
-	return merged;
+	return { profiles, shortcut };
 }
 
 function describe(name: string, p: Profile): string {
@@ -74,6 +94,10 @@ function describe(name: string, p: Profile): string {
 export default function modelProfiles(pi: ExtensionAPI) {
 	let profiles: ProfilesConfig = {};
 	let activeName: string | undefined;
+
+	// Shortcuts are bound at registration time, so resolve the key now.
+	// pi's process cwd is the session cwd at load; project configs apply on /reload.
+	const { shortcut } = loadProfiles(process.cwd());
 
 	async function applyProfile(name: string, ctx: ExtensionContext): Promise<void> {
 		const profile = profiles[name];
@@ -130,7 +154,7 @@ export default function modelProfiles(pi: ExtensionAPI) {
 	}
 
 	pi.on("session_start", async (_event, ctx) => {
-		profiles = loadProfiles(ctx.cwd);
+		profiles = loadProfiles(ctx.cwd).profiles;
 	});
 
 	pi.registerCommand("profile", {
@@ -142,7 +166,7 @@ export default function modelProfiles(pi: ExtensionAPI) {
 		},
 	});
 
-	pi.registerShortcut("alt+p", {
+	pi.registerShortcut(shortcut as KeyId, {
 		description: "Cycle favorite model profiles",
 		handler: async (ctx) => cycleFavorite(ctx),
 	});
