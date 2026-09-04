@@ -6,5 +6,9 @@
 	"license": "MIT",
 	"pi": {
 		"extensions": ["./extensions"]
+	},
+	"repository": {
+	  "type": "git",
+	  "url": "https://github.com/brunoorsolon/pi-agent-profiles.git"
 	}
 }
