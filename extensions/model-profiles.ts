@@ -149,7 +149,19 @@ export default function modelProfiles(pi: ExtensionAPI) {
 			ctx.ui.notify("No favorite profiles. Mark profiles with \"favorite\": true", "warning");
 			return;
 		}
-		const next = favorites[(favorites.indexOf(activeName ?? "") + 1) % favorites.length];
+
+		// Check if current model/thinking matches any profile, or use activeName
+		let currentIndex = favorites.indexOf(activeName ?? "");
+		if (currentIndex === -1 && ctx.model) {
+			// Try to find a favorite profile matching current model and thinking level
+			const currentThinking = ctx.getThinkingLevel();
+			currentIndex = favorites.findIndex((n) => {
+				const p = profiles[n];
+				return p.provider === ctx.model?.provider && p.model === ctx.model?.id && (p.thinkingLevel ?? "off") === (currentThinking ?? "off");
+			});
+		}
+
+		const next = favorites[(currentIndex + 1) % favorites.length];
 		void applyProfile(next, ctx);
 	}
 
