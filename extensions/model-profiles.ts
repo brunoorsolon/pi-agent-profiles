@@ -154,7 +154,7 @@ export default function modelProfiles(pi: ExtensionAPI) {
 		let currentIndex = favorites.indexOf(activeName ?? "");
 		if (currentIndex === -1 && ctx.model) {
 			// Try to find a favorite profile matching current model and thinking level
-			const currentThinking = ctx.getThinkingLevel();
+			const currentThinking = pi.getThinkingLevel();
 			currentIndex = favorites.findIndex((n) => {
 				const p = profiles[n];
 				return p.provider === ctx.model?.provider && p.model === ctx.model?.id && (p.thinkingLevel ?? "off") === (currentThinking ?? "off");
